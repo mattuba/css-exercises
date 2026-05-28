@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace  = "com.example.pomodoro"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId  = "com.example.pomodoro"
         minSdk         = 30   // Wear OS 3.0+
-        targetSdk      = 35
+        targetSdk      = 34
         versionCode    = 1
         versionName    = "1.0"
     }
