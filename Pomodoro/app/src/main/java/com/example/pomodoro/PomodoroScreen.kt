@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -33,52 +36,59 @@ private val Green  = Color(0xFF66BB6A)
 fun PomodoroScreen(viewModel: PomodoroViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
-    val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            // Tap anywhere on the screen = start / pause
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-            ) { viewModel.toggleTimer() }
             .focusRequester(focusRequester)
-            // Crown rotation must come before focusable() to receive events
             .onRotaryScrollEvent { event ->
                 viewModel.handleRotary(event.verticalScrollPixels)
                 true
             }
-            .focusable(interactionSource = interactionSource)
+            .focusable()
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            // Session label — not tappable
             Text(
                 text = state.session.label,
                 fontSize = 13.sp,
                 color = if (state.session.isFocus) Orange else Green,
             )
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
 
-            Text(
-                text = state.timeString,
-                fontSize = 52.sp,
-                fontFamily = FontFamily.Monospace,
-                color = Color.White,
-            )
+            // Tap target: just the time + hint, circular, ~140dp
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { viewModel.toggleTimer() }
+                    .padding(20.dp)
+            ) {
+                Text(
+                    text = state.timeString,
+                    fontSize = 52.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.White,
+                )
 
-            Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
 
-            Text(
-                text = if (state.isRunning) "tap to pause" else "tap to start",
-                fontSize = 11.sp,
-                color = Color.Gray,
-            )
+                Text(
+                    text = if (state.isRunning) "▐▐" else "▶",
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                )
+            }
         }
     }
 
