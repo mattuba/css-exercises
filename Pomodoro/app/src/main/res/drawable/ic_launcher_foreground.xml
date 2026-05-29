@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Tomato body -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M28,57 A26,26 0 1 0 80,57 A26,26 0 1 0 28,57 Z" />
+
+    <!-- Highlight (soft white gleam, top-left) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.25"
+        android:pathData="M38,42 A9,6 0 0 1 54,38 A9,6 0 0 0 38,42 Z" />
+
+    <!-- Stem -->
+    <path
+        android:fillColor="#388E3C"
+        android:pathData="M51,32 C51,28 57,28 57,32 L57,22 C57,18 51,18 51,22 Z" />
+
+    <!-- Left leaf -->
+    <path
+        android:fillColor="#43A047"
+        android:pathData="M52,26 C48,18 36,15 34,20 C40,22 48,28 52,30 Z" />
+
+    <!-- Right leaf -->
+    <path
+        android:fillColor="#43A047"
+        android:pathData="M56,26 C60,18 72,15 74,20 C68,22 60,28 56,30 Z" />
+
+    <!-- Left eye -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,53 A3,3 0 1 0 50,53 A3,3 0 1 0 44,53 Z" />
+
+    <!-- Right eye -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M58,53 A3,3 0 1 0 64,53 A3,3 0 1 0 58,53 Z" />
+
+    <!-- Smile -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M45,64 Q54,72 63,64" />
+
+</vector>
