@@ -1,6 +1,9 @@
 package com.example.pomodoro
 
 import android.app.Application
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.RingtoneManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.content.getSystemService
@@ -41,17 +44,16 @@ data class TimerState(
 class PomodoroViewModel(app: Application) : AndroidViewModel(app) {
 
     private val vibrator = app.getSystemService<Vibrator>()
+    private val appContext = app.applicationContext
 
     private val _state = MutableStateFlow(TimerState())
     val state: StateFlow<TimerState> = _state.asStateFlow()
 
     private var timerJob: Job? = null
 
-    // Accumulates sub-step crown pixels before committing a 30-second step.
-    // Requires ~20 pixels per step — tunable below.
     private var rotaryAccumulator = 0f
-    private val PIXELS_PER_STEP = 20f   // raise to reduce sensitivity
-    private val SECS_PER_STEP    = 30   // seconds changed per step
+    private val PIXELS_PER_STEP = 20f
+    private val SECS_PER_STEP   = 30
 
     // ── Timer control ──────────────────────────────────────────────────────
 
@@ -88,11 +90,11 @@ class PomodoroViewModel(app: Application) : AndroidViewModel(app) {
         timerJob?.cancel()
         val next = (_state.value.sessionIndex + 1) % SESSIONS.size
         _state.value = TimerState(sessionIndex = next)
-        haptic(Haptic.DOUBLE_CLICK)
+        playSessionEndSound()
+        haptic(Haptic.SESSION_END)
     }
 
     // ── Crown / rotary input ───────────────────────────────────────────────
-    // Called from onRotaryScrollEvent; positive pixels = clockwise = forward in time.
 
     fun handleRotary(pixelsScrolled: Float) {
         val s = _state.value
@@ -119,10 +121,7 @@ class PomodoroViewModel(app: Application) : AndroidViewModel(app) {
             }
             newTime < 0 -> {
                 val prev = (s.sessionIndex - 1 + SESSIONS.size) % SESSIONS.size
-                _state.value = TimerState(
-                    sessionIndex = prev,
-                    timeRemainingSecs = 0.0
-                )
+                _state.value = TimerState(sessionIndex = prev, timeRemainingSecs = 0.0)
                 rotaryAccumulator = 0f
                 haptic(Haptic.TICK)
             }
@@ -133,15 +132,41 @@ class PomodoroViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // ── Sound ──────────────────────────────────────────────────────────────
+    // Uses the watch's default notification sound — gentle by design, and
+    // respects whatever volume the user has set on the watch.
+
+    private fun playSessionEndSound() {
+        try {
+            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val ringtone = RingtoneManager.getRingtone(appContext, uri)
+            ringtone?.apply {
+                audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setLegacyStreamType(AudioManager.STREAM_NOTIFICATION)
+                    .build()
+                play()
+            }
+        } catch (_: Exception) {
+            // If sound fails for any reason, the haptic below still fires
+        }
+    }
+
     // ── Haptics ────────────────────────────────────────────────────────────
 
-    private enum class Haptic { CLICK, DOUBLE_CLICK, TICK }
+    private enum class Haptic { CLICK, TICK, SESSION_END }
 
     private fun haptic(type: Haptic) {
         val effect = when (type) {
-            Haptic.CLICK        -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-            Haptic.DOUBLE_CLICK -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
-            Haptic.TICK         -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+            Haptic.CLICK       -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+            Haptic.TICK        -> VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+            // Three gentle pulses — clear but not startling
+            Haptic.SESSION_END -> VibrationEffect.createWaveform(
+                longArrayOf(0, 200, 150, 200, 150, 200),
+                intArrayOf(0, 180, 0, 180, 0, 180),
+                -1
+            )
         }
         vibrator?.vibrate(effect)
     }
