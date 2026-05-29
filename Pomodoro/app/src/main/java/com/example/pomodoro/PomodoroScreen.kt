@@ -1,8 +1,9 @@
 package com.example.pomodoro
 
-import android.view.KeyEvent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -33,31 +33,25 @@ private val Green  = Color(0xFF66BB6A)
 fun PomodoroScreen(viewModel: PomodoroViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            // Tap anywhere on the screen = start / pause
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+            ) { viewModel.toggleTimer() }
             .focusRequester(focusRequester)
-            .focusable()
-            // Crown rotation → scrub time (ignored while running)
+            // Crown rotation must come before focusable() to receive events
             .onRotaryScrollEvent { event ->
                 viewModel.handleRotary(event.verticalScrollPixels)
                 true
             }
-            // Side button (STEM_PRIMARY) → start / pause
-            .onKeyEvent { keyEvent ->
-                val native = keyEvent.nativeKeyEvent
-                if (native.keyCode == KeyEvent.KEYCODE_STEM_PRIMARY &&
-                    native.action == android.view.KeyEvent.ACTION_DOWN
-                ) {
-                    viewModel.toggleTimer()
-                    true
-                } else {
-                    false
-                }
-            }
+            .focusable(interactionSource = interactionSource)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -81,13 +75,12 @@ fun PomodoroScreen(viewModel: PomodoroViewModel) {
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = if (state.isRunning) "running" else "paused",
+                text = if (state.isRunning) "tap to pause" else "tap to start",
                 fontSize = 11.sp,
                 color = Color.Gray,
             )
         }
     }
 
-    // Crown rotation requires the composable to hold focus.
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
