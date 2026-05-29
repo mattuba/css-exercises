@@ -8,6 +8,8 @@
 
     <application
         android:label="Pomodoro"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@android:style/Theme.DeviceDefault">
 
         <activity
