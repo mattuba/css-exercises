@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -9,14 +8,18 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId  = "com.example.pomodoro"
-        minSdk         = 30   // Wear OS 3.0+
-        targetSdk      = 34
-        versionCode    = 1
-        versionName    = "1.0"
+        applicationId = "com.example.pomodoro"
+        minSdk        = 30
+        targetSdk     = 34
+        versionCode   = 1
+        versionName   = "1.0"
     }
 
     buildFeatures { compose = true }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.ext.get()
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
